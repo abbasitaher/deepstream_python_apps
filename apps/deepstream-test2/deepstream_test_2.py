@@ -317,11 +317,7 @@ def main(args):
     h264parser.link(decoder)
 
     sinkpad = streammux.get_request_pad("sink_0")
-    if not sinkpad:
-        sys.stderr.write(" Unable to get the sink pad of streammux \n")
     srcpad = decoder.get_static_pad("src")
-    if not srcpad:
-        sys.stderr.write(" Unable to get source pad of decoder \n")
     srcpad.link(sinkpad)
     streammux.link(pgie)
     pgie.link(tracker)
@@ -339,23 +335,12 @@ def main(args):
 
     # create and event loop and feed gstreamer bus mesages to it
     loop = GObject.MainLoop()
-
     bus = pipeline.get_bus()
     bus.add_signal_watch()
     bus.connect ("message", bus_call, loop)
 
-    # Lets add probe to get informed of the meta data generated, we add probe to
-    # the sink pad of the osd element, since by that time, the buffer would have
-    # had got all the metadata.
     osdsinkpad = nvosd.get_static_pad("sink")
-    if not osdsinkpad:
-        sys.stderr.write(" Unable to get sink pad of nvosd \n")
     osdsinkpad.add_probe(Gst.PadProbeType.BUFFER, osd_sink_pad_buffer_probe, 0)
-
-
-    print("Starting pipeline \n")
-    
-    # start play back and listed to events
     pipeline.set_state(Gst.State.PLAYING)
     try:
       loop.run()
